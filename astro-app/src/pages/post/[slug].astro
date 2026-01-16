@@ -1,0 +1,229 @@
+---
+import type { InferGetStaticParamsType } from "astro";
+import { PortableText } from "astro-portabletext";
+import ThreeColumnLayout from "../../layouts/ThreeColumnLayout.astro";
+import { formatDate } from "../../utils";
+import { urlFor } from "../../utils/image";
+import { getPost, getPosts } from "../../utils/sanity";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({
+    params: { slug: post.slug.current },
+  }));
+}
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+const { slug } = Astro.params as Params;
+
+const post = await getPost(slug);
+---
+
+<ThreeColumnLayout title={post.title!} isArticleView={true}>
+  <div slot="main">
+    <div class="header-container">
+        <a href="/" class="back-link" aria-label="Back to Home">
+             ←
+        </a>
+        <span class="page-title">BLOG</span>
+    </div>
+
+    <section class="post">
+      {
+        post.mainImage ? (
+          <img
+            class="post__cover"
+            src={urlFor(post.mainImage).url()}
+            alt="Cover image"
+          />
+        ) : (
+          <div class="post__cover--none" />
+        )
+      }
+      <div class="post__container">
+        <p class="post__date">
+          {formatDate(post._createdAt)}
+        </p>
+        <h1 class="post__title">{post.title}</h1>
+        <p class="post__excerpt">{post.excerpt}</p>
+        <div class="post__content">
+          <PortableText value={post.body} />
+        </div>
+      </div>
+    </section>
+
+    <div class="scroll-progress"></div>
+  </div>
+</ThreeColumnLayout>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const scrollProgress = document.querySelector('.scroll-progress') as HTMLElement;
+
+    if (scrollProgress) {
+      window.addEventListener('scroll', () => {
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (scrollTop / scrollHeight) * 100;
+        scrollProgress.style.width = `${scrolled}%`;
+      });
+    }
+  });
+</script>
+
+<style>
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 6px;
+    background-color: var(--blue-600);
+    z-index: 9999;
+    transition: width 0.1s;
+  }
+
+  .header-container {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    margin-bottom: 0;
+    
+    /* Ensure precise alignment */
+    height: 57px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .page-title {
+    font-family: var(--font-family-sans);
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin: 0;
+    text-transform: uppercase;
+    color: #ff8565;
+    letter-spacing: 0.05em;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #eb5027;
+    text-decoration: none;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .back-link:hover {
+    opacity: 0.7;
+  }
+
+  .post {
+    width: 100%;
+    width: 100%;
+    margin: 0 0 var(--space-4);
+
+    & .post__cover,
+    & .post__cover--none {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    & .post__cover--none {
+      background: var(--black);
+    }
+
+    & .post__container {
+      padding: 0 var(--space-3);
+    }
+
+    & .post__content {
+      font-family: var(--font-family-sans);
+      font-weight: 400;
+      font-size: 1.125rem;
+      line-height: 1.8;
+      letter-spacing: -0.01em;
+      margin-top: var(--space-6);
+
+      /* Targeting tags in PortableText */
+      & :global(blockquote) {
+        border-left: 5px solid var(--black);
+        padding-left: var(--space-3);
+        margin-left: var(--space-4);
+      }
+
+      & :global(a) {
+        color: #eb5027;
+        text-decoration: underline;
+      }
+    }
+
+    & .post__title {
+      font-family: var(--font-family-sans);
+      font-size: 3rem;
+      line-height: 1.1;
+      margin: var(--space-4) 0;
+      font-weight: 400;
+    }
+
+    & .post__excerpt {
+      font-family: var(--font-family-sans);
+      font-size: 1.25rem;
+      line-height: 1.6;
+      margin-top: 0;
+      font-weight: 400;
+    }
+
+    & .post__date {
+      font-family: var(--font-family-sans);
+      font-weight: 600;
+      font-size: var(--font-size-1);
+      line-height: var(--line-height-1);
+      margin-top: var(--space-4);
+    }
+  }
+
+  @media (min-width: 800px) {
+    .post {
+      & .post__cover,
+      & .post__cover--none {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16/9;
+      }
+
+      & .post__title {
+        font-size: 4.5rem;
+        line-height: 1;
+        margin: var(--space-6) 0 0;
+        letter-spacing: -0.025em;
+      }
+
+      & .post__excerpt {
+        font-size: var(--font-size-5);
+        line-height: var(--line-height-5);
+        margin-top: 2.5rem;
+        margin-bottom: var(--space-3);
+      }
+
+      & .post__date {
+        font-size: var(--font-size-3);
+        line-height: var(--line-height-2);
+        margin-top: 3rem;
+      }
+
+      & .post__content {
+        margin-top: 4rem;
+        padding: 0;
+        max-width: 68ch;
+      }
+      
+      & .post__container {
+          padding: 0 4rem;
+      }
+    }
+  }
+</style>

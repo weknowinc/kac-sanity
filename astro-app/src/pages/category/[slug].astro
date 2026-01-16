@@ -1,0 +1,122 @@
+---
+import type { InferGetStaticParamsType } from "astro";
+import Card from "../../components/Card.astro";
+import ThreeColumnLayout from "../../layouts/ThreeColumnLayout.astro";
+import ThoughtStream from "../../components/ThoughtStream";
+import { getCategories, getCategoryData } from "../../utils/sanity";
+
+export async function getStaticPaths() {
+  const categories = await getCategories();
+  return categories.map((category) => ({
+    params: { slug: category.slug.current },
+    props: { category },
+  }));
+}
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+const { slug } = Astro.params as Params;
+const { category } = Astro.props;
+
+const { posts, thoughts } = await getCategoryData(slug);
+---
+
+<ThreeColumnLayout title={`Blog posts - ${category.title}`}>
+  <div slot="main">
+    <div class="header-container">
+        <a href="/" class="back-link" aria-label="Back to Home">
+             ←
+        </a>
+        <h1 class="page-title">Blog posts - {category.title}</h1>
+    </div>
+    
+    <section>
+        {posts.length > 0 ? (
+             posts.map((post) => <Card post={post} />)
+        ) : (
+            <p>No posts found in this category.</p>
+        )}
+    </section>
+  </div>
+  
+  <div slot="thoughts">
+     <ThoughtStream client:load thoughts={thoughts} />
+  </div>
+</ThreeColumnLayout>
+
+<style>
+    .header-container {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        margin-bottom: 2rem;
+        
+        /* Ensure precise alignment */
+        height: 57px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        /* margin-bottom removed to keep in row */
+        color: var(--black); /* Arrow color - standard black or gray? "Everything... same font... same font size" implies conformity */
+        text-decoration: none;
+        font-size: 1.125rem; /* Slightly larger arrow for visibility */
+        font-weight: 500;
+    }
+
+    .back-link:hover {
+        opacity: 0.7;
+    }
+
+    .page-title {
+        /* Matching Thoughts title style: 
+           font-size: 0.875rem; 
+           font-weight: 700; 
+           color: var(--gray-600); 
+           text-transform: uppercase; 
+           letter-spacing: 0.05em; 
+        */
+        font-family: var(--font-family-sans); /* Ensure sans-serif, not serif */
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+    
+    .thoughts-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .thought-item {
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .thought-content {
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .thought-meta {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        display: flex;
+        gap: 0.25rem;
+        font-weight: 500;
+    }
+    
+    .thought-source.link {
+        color: var(--black);
+        text-decoration: underline;
+    }
+</style>

@@ -1,0 +1,204 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+import CategoryNav from '../components/CategoryNav.astro';
+import ContactModal from '../components/ContactModal';
+
+interface Props {
+  title: string;
+  isArticleView?: boolean;
+}
+
+const { title, isArticleView = false } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <!-- Google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@500;700;800&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+
+    <title>{title}</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <div class="layout-grid">
+      <!-- Column 1: Sidebar (span 2) -->
+      <aside class="sidebar">
+        <header class="header">
+            <a class="header__title" href="/">Kenny<br> Abarca<br> Coto</a>
+        </header>
+        <div class="nav-container">
+            <p class="nav-title">CATEGORIES</p>
+            <CategoryNav />
+        </div>
+      </aside>
+
+      <!-- Column 2: Main Feed (span 6 or 10) -->
+      <main class:list={["main-content", { "article-view": isArticleView }]}>
+        <slot name="main" />
+      </main>
+
+      <!-- Column 3: Thoughts (span 4) -->
+      { !isArticleView && (
+        <aside class="thoughts-sidebar">
+            <h2 class="thoughts-title">THOUGHTS</h2>
+            <slot name="thoughts" />
+        </aside>
+      )}
+    </div>
+    <ContactModal client:idle />
+  </body>
+</html>
+
+<style>
+  /* Global Variables */
+  :root {
+    --white: #fff;
+    --black: #101112;
+    --gray-200: #eff3f4;
+    --gray-600: #6e7683;
+    --blue-600: #eb5027;
+    
+    --font-family-sans: Inter, sans-serif;
+    --font-family-serif: 'PT Serif', serif;
+  }
+
+  html {
+    background-color: #ffffff;
+    min-height: 100vh;
+    font-family: var(--font-family-sans);
+    color: var(--black);
+  }
+
+  body {
+    margin: 0;
+    max-width: 1300px; /* Matching X.com approx width */
+    margin: 0 auto;
+    background-color: #FFF;
+  }
+
+  .layout-grid {
+    display: grid;
+    /* X.com style: Fixed Left (~275px), Fluid Middle, Fixed Right (~350px) */
+    grid-template-columns: 275px 1fr 350px;
+    gap: 0; /* Remove gap for border lines to touch */
+    min-height: 100vh;
+    background-color: #FFF;
+    box-shadow: 0 0 60px rgba(1,0,0,0.08);
+  }
+
+  /* Sidebar Styles */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    padding-right: 2rem; /* Add spacing inside column */
+    padding-top: 1rem;
+    padding-left: 2rem;
+    
+    /* Make sticky */
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* ... sidebar titles etc ... */
+  .sidebar .header__title {
+    font-family: var(--font-family-sans);
+    font-weight: 800;
+    font-size: 1.3rem;
+    line-height: 1;
+    text-decoration: none;
+    color: #eb5027;
+    display: inline-block; /* Ensure background respects box */
+    text-transform: uppercase;
+  }
+
+  .nav-title {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: #ff8565;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Main Content Styles */
+  .main-content {
+    border-left: 1px solid var(--gray-200);
+    border-right: 1px solid var(--gray-200);
+    /* Padding is handled inside the slot containers mostly, but we can standardise */
+  }
+
+  .main-content.article-view {
+    grid-column: 2 / -1;
+    border-right: none; /* No border on right if full width */
+  }
+
+  /* Thoughts Sidebar Styles */
+  .thoughts-sidebar {
+    padding-left: 0; /* Clear previous padding */
+    border-left: none; /* Already handled by main-content right border */
+    border-right: 1px solid var(--gray-200); /* Vertical line to the right of 3rd column */
+  }
+
+  .thoughts-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #ff8565;
+    margin-top: 0;
+    margin-bottom: 2rem; /* Changed from 1.5rem + 1rem combo to match main col */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem; /* Match header container padding */
+    border-bottom: 1px solid var(--gray-200); /* Line under title */
+    
+    /* Ensure height matches main col header */
+    height: 57px; /* Explicit height calculation: 14px font * 1.25 line height + 2rem padding + 1px border ~ 17.5 + 32 + 1 = 50.5. Let's just use box-sizing to ensure match.*/
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+
+    /* Make sticky */
+    position: sticky;
+    top: 0;
+    background-color: #FFF;
+    z-index: 10;
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 1024px) {
+    .layout-grid {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar, .main-content, .thoughts-sidebar {
+      grid-column: auto;
+      width: 100%;
+      border: none;
+      padding: 0;
+    }
+
+    .sidebar {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .nav-container {
+        display: none; /* Hide nav on mobile for now or implement burger menu */
+    }
+  }
+</style>

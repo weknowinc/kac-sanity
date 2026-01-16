@@ -1,0 +1,54 @@
+---
+import Card from "../components/Card.astro";
+import Welcome from "../components/Welcome.astro";
+import ThreeColumnLayout from "../layouts/ThreeColumnLayout.astro";
+import ThoughtStream from "../components/ThoughtStream";
+import { getHomeData } from "../utils/sanity";
+
+const { posts, thoughts } = await getHomeData();
+---
+
+<ThreeColumnLayout title="Kenny Abarca Coto">
+  <div slot="main">
+    <div class="header-container">
+        <h1 class="page-title">Blog Posts</h1>
+    </div>
+    <section>
+      {posts.length ? posts.map((post) => <Card post={post} />) : <Welcome />}
+    </section>
+  </div>
+
+  <div slot="thoughts">
+      <ThoughtStream client:load thoughts={thoughts} />
+  </div>
+</ThreeColumnLayout>
+
+<style>
+    .header-container {
+        padding: 1rem 1.5rem; /* Match thoughts title padding */
+        border-bottom: 1px solid var(--gray-200);
+        margin-bottom: 2rem;
+        
+        /* Ensure precise alignment with Thoughts column */
+        height: 57px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+
+        /* Make sticky */
+        position: sticky;
+        top: 0;
+        background-color: #FFF; /* Use correct white matching layout */
+        z-index: 10;
+    }
+
+    .page-title {
+        font-family: var(--font-family-sans);
+        font-size: 0.875rem;
+        font-weight: 700;
+        margin: 0;
+        text-transform: uppercase;
+        color: #ff8565;
+        letter-spacing: 0.05em;
+    }
+</style>
