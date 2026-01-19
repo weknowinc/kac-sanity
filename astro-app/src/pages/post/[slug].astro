@@ -2,9 +2,10 @@
 import type { InferGetStaticParamsType } from "astro";
 import { PortableText } from "astro-portabletext";
 import ThreeColumnLayout from "../../layouts/ThreeColumnLayout.astro";
+import ThoughtStream from "../../components/ThoughtStream";
 import { formatDate } from "../../utils";
 import { urlFor } from "../../utils/image";
-import { getPost, getPosts } from "../../utils/sanity";
+import { getPost, getPosts, getHomeData } from "../../utils/sanity";
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -17,9 +18,15 @@ type Params = InferGetStaticParamsType<typeof getStaticPaths>;
 const { slug } = Astro.params as Params;
 
 const post = await getPost(slug);
+const { thoughts } = await getHomeData();
 ---
 
-<ThreeColumnLayout title={post.title!} isArticleView={true}>
+<ThreeColumnLayout 
+  title={post.title!} 
+  description={post.excerpt}
+  image={post.mainImage ? urlFor(post.mainImage).url() : undefined}
+  isArticleView={true}
+>
   <div slot="main">
     <div class="header-container">
         <a href="/" class="back-link" aria-label="Back to Home">
@@ -53,6 +60,10 @@ const post = await getPost(slug);
     </section>
 
     <div class="scroll-progress"></div>
+  </div>
+
+  <div slot="thoughts">
+      <ThoughtStream client:load thoughts={thoughts} />
   </div>
 </ThreeColumnLayout>
 

@@ -78,6 +78,11 @@ const {
         </div>
     </div>
 
+    <div class="mobile-tabs">
+        <button class="mobile-tab-btn active" data-target="main">BLOG POSTS</button>
+        <button class="mobile-tab-btn" data-target="thoughts">THOUGHTS</button>
+    </div>
+
     <div class="layout-grid">
       <!-- Column 1: Sidebar (span 2) -->
       <aside class="sidebar">
@@ -96,19 +101,45 @@ const {
       </main>
 
       <!-- Column 3: Thoughts (span 4) -->
-      { !isArticleView && (
-        <aside class="thoughts-sidebar">
-            <h2 class="thoughts-title">THOUGHTS</h2>
-            <slot name="thoughts" />
-        </aside>
-      )}
+      <aside class="thoughts-sidebar hidden-mobile">
+          <h2 class="thoughts-title">THOUGHTS</h2>
+          <slot name="thoughts" />
+      </aside>
     </div>
     <ContactModal client:idle />
 
     <script>
-        const mobileHeader = document.querySelector('.mobile-header');
-        const mobileMenu = document.querySelector('.mobile-menu');
-        const menuBtn = document.querySelector('.mobile-menu-btn');
+        const mobileHeader = document.querySelector('.mobile-header') as HTMLElement;
+        const mobileMenu = document.querySelector('.mobile-menu') as HTMLElement;
+        const menuBtn = document.querySelector('.mobile-menu-btn') as HTMLElement;
+        const mobileTabs = document.querySelector('.mobile-tabs') as HTMLElement;
+        const tabBtns = document.querySelectorAll('.mobile-tab-btn');
+        const mainContent = document.querySelector('.main-content');
+        const thoughtsSidebar = document.querySelector('.thoughts-sidebar');
+        
+        // Tab Switching Logic
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-target');
+                
+                // Update tabs state
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Toggle content visibility
+                if (target === 'main') {
+                    mainContent?.classList.remove('hidden-mobile');
+                    thoughtsSidebar?.classList.add('hidden-mobile');
+                } else {
+                    mainContent?.classList.add('hidden-mobile');
+                    thoughtsSidebar?.classList.remove('hidden-mobile');
+                }
+                
+                // Scroll to top when switching
+                window.scrollTo(0, 0);
+            });
+        });
+
         let lastScrollY = window.scrollY;
 
         // Smart Header Scroll
@@ -119,8 +150,16 @@ const {
             // Hide on scroll down, show on scroll up
             if (currentScrollY > lastScrollY && currentScrollY > 50) {
                 mobileHeader.classList.add('hidden');
+                // When header hides, move tabs up to stick to top
+                if (mobileTabs) {
+                    mobileTabs.style.transform = 'translateY(-60px)';
+                }
             } else {
                 mobileHeader.classList.remove('hidden');
+                // When header shows, reset tabs position
+                if (mobileTabs) {
+                    mobileTabs.style.transform = 'translateY(0)';
+                }
             }
             lastScrollY = currentScrollY;
         });
@@ -233,6 +272,13 @@ const {
     border-right: none; /* No border on right if full width */
   }
 
+  /* Desktop-only rule to hide thoughts in article view */
+  @media (min-width: 1025px) {
+    .main-content.article-view + .thoughts-sidebar {
+        display: none;
+    }
+  }
+
   /* Thoughts Sidebar Styles */
   .thoughts-sidebar {
     padding-left: 0; /* Clear previous padding */
@@ -285,6 +331,41 @@ const {
   .mobile-header.hidden {
       transform: translateY(-100%);
   }
+  
+  /* Mobile Tabs Styles */
+  .mobile-tabs {
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: #FFF;
+      border-bottom: 1px solid var(--gray-200);
+      z-index: 99;
+      transition: transform 0.3s ease;
+  }
+  
+  .mobile-tab-btn {
+      flex: 1;
+      border: none;
+      background: none;
+      font-family: var(--font-family-sans);
+      font-weight: 700;
+      font-size: 0.875rem;
+      color: #ff8565;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+  }
+  
+  .mobile-tab-btn.active {
+      color: #eb5027;
+      border-bottom-color: #eb5027;
+      background-color: rgba(235, 80, 39, 0.05);
+  }
 
   .mobile-logo {
       font-weight: 800;
@@ -310,7 +391,7 @@ const {
       right: 0;
       bottom: 0;
       background: white;
-      z-index: 99;
+      z-index: 101; /* Ensure above tabs */
       transform: translateX(100%);
       transition: transform 0.3s ease;
       padding: 2rem;
@@ -325,11 +406,15 @@ const {
     .layout-grid {
       display: flex;
       flex-direction: column;
-      padding-top: 60px; /* Space for mobile header */
+      padding-top: 135px; /* 60px header + 50px tabs + 25px extra spacing */
     }
 
-    .mobile-header {
+    .mobile-header, .mobile-tabs {
         display: flex;
+    }
+    
+    .hidden-mobile {
+        display: none !important;
     }
 
     .sidebar {
