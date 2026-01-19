@@ -5,10 +5,17 @@ import ContactModal from '../components/ContactModal';
 
 interface Props {
   title: string;
+  description?: string;
+  image?: string;
   isArticleView?: boolean;
 }
 
-const { title, isArticleView = false } = Astro.props;
+const { 
+  title, 
+  description = "Kenny's personal blog about technology, investing, tennis and everything in between.", 
+  image = "/opengraph.png",
+  isArticleView = false 
+} = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -25,6 +32,21 @@ const { title, isArticleView = false } = Astro.props;
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@500;700;800&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
 
     <title>{title}</title>
+    <meta name="description" content={description} />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(image, Astro.url)} />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={new URL(image, Astro.url)} />
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-11547VPW52"></script>
     <script is:inline>
@@ -38,6 +60,24 @@ const { title, isArticleView = false } = Astro.props;
     <ViewTransitions />
   </head>
   <body>
+    <div class="mobile-header">
+        <a href="/" class="mobile-logo">KAC</a>
+        <button class="mobile-menu-btn" aria-label="Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+
+    <div class="mobile-menu">
+        <div class="mobile-menu-content">
+            <p class="nav-title">CATEGORIES</p>
+            <CategoryNav />
+        </div>
+    </div>
+
     <div class="layout-grid">
       <!-- Column 1: Sidebar (span 2) -->
       <aside class="sidebar">
@@ -64,6 +104,45 @@ const { title, isArticleView = false } = Astro.props;
       )}
     </div>
     <ContactModal client:idle />
+
+    <script>
+        const mobileHeader = document.querySelector('.mobile-header');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        let lastScrollY = window.scrollY;
+
+        // Smart Header Scroll
+        window.addEventListener('scroll', () => {
+            if (!mobileHeader) return;
+            const currentScrollY = window.scrollY;
+
+            // Hide on scroll down, show on scroll up
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                mobileHeader.classList.add('hidden');
+            } else {
+                mobileHeader.classList.remove('hidden');
+            }
+            lastScrollY = currentScrollY;
+        });
+
+        // Menu Toggle
+        menuBtn?.addEventListener('click', () => {
+            mobileMenu?.classList.toggle('open');
+            menuBtn.classList.toggle('active');
+            
+            // Toggle icon between hamburger and X
+            const svg = menuBtn.querySelector('svg');
+            if (svg) {
+                if (mobileMenu?.classList.contains('open')) {
+                    svg.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    svg.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+    </script>
   </body>
 </html>
 
@@ -185,30 +264,83 @@ const { title, isArticleView = false } = Astro.props;
     z-index: 10;
   }
 
+  /* Mobile Header Styles */
+  .mobile-header {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--gray-200);
+      z-index: 100;
+      padding: 0 1.5rem;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.3s ease;
+  }
+
+  .mobile-header.hidden {
+      transform: translateY(-100%);
+  }
+
+  .mobile-logo {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: #eb5027;
+      text-decoration: none;
+      letter-spacing: -0.02em;
+  }
+
+  .mobile-menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #eb5027;
+      padding: 0;
+  }
+
+  /* Mobile Menu Overlay */
+  .mobile-menu {
+      position: fixed;
+      top: 60px; /* Below header */
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      z-index: 99;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      padding: 2rem;
+  }
+
+  .mobile-menu.open {
+      transform: translateX(0);
+  }
+
   /* Mobile Responsiveness */
   @media (max-width: 1024px) {
     .layout-grid {
       display: flex;
       flex-direction: column;
+      padding-top: 60px; /* Space for mobile header */
     }
 
-    .sidebar, .main-content, .thoughts-sidebar {
+    .mobile-header {
+        display: flex;
+    }
+
+    .sidebar {
+        display: none; /* Hide default sidebar on mobile */
+    }
+
+    .main-content, .thoughts-sidebar {
       grid-column: auto;
       width: 100%;
       border: none;
       padding: 0;
-    }
-
-    .sidebar {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-    
-    .nav-container {
-        display: none; /* Hide nav on mobile for now or implement burger menu */
     }
   }
 </style>
