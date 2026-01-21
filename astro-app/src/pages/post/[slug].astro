@@ -6,6 +6,13 @@ import ThoughtStream from "../../components/ThoughtStream";
 import { formatDate } from "../../utils";
 import { urlFor } from "../../utils/image";
 import { getPost, getPosts, getHomeData } from "../../utils/sanity";
+import CodeBlockWrapper from "../../components/portabletext/CodeBlockWrapper.astro";
+
+const components = {
+  type: {
+    code: CodeBlockWrapper,
+  },
+};
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -54,7 +61,7 @@ const { thoughts } = await getHomeData();
         <h1 class="post__title">{post.title}</h1>
         <p class="post__excerpt">{post.excerpt}</p>
         <div class="post__content">
-          <PortableText value={post.body} />
+          <PortableText value={post.body} components={components as any} />
         </div>
       </div>
     </section>
