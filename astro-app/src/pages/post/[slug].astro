@@ -7,10 +7,12 @@ import { formatDate } from "../../utils";
 import { urlFor } from "../../utils/image";
 import { getPost, getPosts, getHomeData } from "../../utils/sanity";
 import CodeBlockWrapper from "../../components/portabletext/CodeBlockWrapper.astro";
+import ImageBlock from "../../components/portabletext/ImageBlock.astro";
 
 const components = {
   type: {
     code: CodeBlockWrapper,
+    image: ImageBlock,
   },
 };
 
