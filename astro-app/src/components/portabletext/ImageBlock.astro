@@ -1,0 +1,32 @@
+---
+import { urlFor } from "../../utils/image";
+
+interface Props {
+  value: {
+    _type: "image";
+    _key?: string;
+    alt?: string;
+    asset: {
+      _type: "reference";
+      _ref: string;
+    };
+  };
+}
+
+const { value } = Astro.props;
+const imageUrl = urlFor(value).width(1200).auto("format").url();
+---
+
+<figure class="post-image my-8">
+  <img
+    src={imageUrl}
+    alt={value.alt || ""}
+    loading="lazy"
+    class="w-full rounded-lg shadow-md"
+  />
+  {value.alt && (
+    <figcaption class="text-sm text-center text-gray-500 mt-2 italic">
+      {value.alt}
+    </figcaption>
+  )}
+</figure>
