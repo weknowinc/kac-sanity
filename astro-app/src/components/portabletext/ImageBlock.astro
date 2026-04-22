@@ -14,15 +14,16 @@ interface Props {
 }
 
 const { node } = Astro.props;
-const imageUrl = urlFor(node).width(1200).auto("format").url();
+const imageUrl = urlFor(node).width(800).auto("format").url();
 ---
 
-<figure class="post-image my-8">
+<figure class="post-image my-8" style="max-width: 100%; overflow: hidden;">
   <img
     src={imageUrl}
     alt={node.alt || ""}
     loading="lazy"
-    class="w-full rounded-lg shadow-md"
+    style="max-width: 100%; width: 100%; height: auto; display: block;"
+    class="rounded-lg shadow-md"
   />
   {node.alt && (
     <figcaption class="text-sm text-center text-gray-500 mt-2 italic">
